@@ -1,7 +1,6 @@
 # 📘 Backend API Documentation
 
 **Base URL:**
-
 ```
 http://localhost:5000/api
 ```
@@ -11,26 +10,23 @@ http://localhost:5000/api
 ## 🔐 Auth Routes
 
 ### ✅ Register User
-
 **POST** `/auth/register`
 
 #### Request JSON:
-
 ```json
 {
-   "_id": "userId",
   "username": "mahmud",
   "firstName": "Mahmud",
   "lastName": "Rahman",
   "email": "mahmud@devplus.fun",
+  "password": "strongpass123",
   "contact": "+880123456789",
-  "profilePicture": "https://...",
-  "bio": "Learning backend and security.",
+  "profilePicture": "https://placehold.co/400x400/EFEFEF/AAAAAA&text=No+Image",
+  "bio": "Learning backend and security."
 }
 ```
 
 #### Success Response:
-
 ```json
 {
   "message": "User registered successfully"
@@ -40,20 +36,17 @@ http://localhost:5000/api
 ---
 
 ### 🔑 Login User
-
 **POST** `/auth/login`
 
 #### Request JSON:
-
 ```json
 {
-  "email": "mahmud@example.com",
+  "email": "mahmud@devplus.fun",
   "password": "strongpass123"
 }
 ```
 
 #### Success Response:
-
 ```json
 {
   "message": "Login successful",
@@ -66,16 +59,14 @@ http://localhost:5000/api
 ## 👤 Profile Route
 
 ### 🔎 Get My Profile
-
 **GET** `/profile`
-**Headers:**
 
+**Headers:**
 ```
 Authorization: Bearer JWT_TOKEN_HERE
 ```
 
 #### Success Response:
-
 ```json
 {
   "_id": "userId",
@@ -84,10 +75,10 @@ Authorization: Bearer JWT_TOKEN_HERE
   "lastName": "Rahman",
   "email": "mahmud@devplus.fun",
   "contact": "+880123456789",
-  "profilePicture": "https://...",
+  "profilePicture": "https://placehold.co/400x400/EFEFEF/AAAAAA&text=No+Image",
   "bio": "Learning backend and security.",
-  "createdAt": "...",
-  "updatedAt": "..."
+  "createdAt": "2025-06-23T06:23:00.000Z",
+  "updatedAt": "2025-06-23T06:23:00.000Z"
 }
 ```
 
@@ -96,19 +87,18 @@ Authorization: Bearer JWT_TOKEN_HERE
 ## 👥 User Management (Admin / Full Access)
 
 ### 📥 Get All Users
-
 **GET** `/users`
 
 ### 📤 Get User by ID
-
 **GET** `/users/:id`
 
-### ✏️ Update User
+### 🔍 Get User by Username
+**GET** `/users/username/:username`
 
+### ✏️ Update User
 **PUT** `/users/:id`
 
 #### Example JSON:
-
 ```json
 {
   "bio": "Updated bio.",
@@ -117,14 +107,12 @@ Authorization: Bearer JWT_TOKEN_HERE
 ```
 
 ### ❌ Delete User
-
 **DELETE** `/users/:id`
 
 ---
 
 ## 📦 Sample .env
-
-```
+```env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/devplusfun
 JWT_SECRET=your_super_secret_key
