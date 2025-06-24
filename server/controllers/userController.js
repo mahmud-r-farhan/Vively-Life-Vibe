@@ -1,11 +1,30 @@
 const User = require('../models/User');
+const cloudinary = require('../config/cloudinary');
 
 exports.createUser = async (req, res) => {
     try {
-        const existingUser = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
+        const existingUser = await User.findOne({ 
+            $or: [{ username: req.body.username }, { email: req.body.email }] 
+        });
         if (existingUser) return res.status(409).json({ message: 'Username or email already in use.' });
 
-        const newUser = new User(req.body);
+        let profilePicture = req.body.profilePicture || 'https://placehold.co/400x400/EFEFEF/AAAAAA?text=No+Image';
+
+        if (req.file) {
+            const uploadResult = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    { folder: 'devplus_users', public_id: `user_${Date.now()}` },
+                    (error, result) => {
+                        if (error) return reject(error);
+                        resolve(result);
+                    }
+                );
+                uploadStream.end(req.file.buffer);
+            });
+            profilePicture = uploadResult.secure_url;
+        }
+
+        const newUser = new User({ ...req.body, profilePicture });
         const savedUser = await newUser.save();
         res.status(201).json({ message: 'User created successfully', user: savedUser });
     } catch (error) {
@@ -50,9 +69,25 @@ exports.getUserByUsername = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
+        let profilePicture = req.body.profilePicture;
+
+        if (req.file) {
+            const uploadResult = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    { folder: 'devplus_users', public_id: `user_${Date.now()}` },
+                    (error, result) => {
+                        if (error) return reject(error);
+                        resolve(result);
+                    }
+                );
+                uploadStream.end(req.file.buffer);
+            });
+            profilePicture = uploadResult.secure_url;
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            { ...req.body, profilePicture },
             { new: true, runValidators: true }
         ).select('-password -__v');
 
