@@ -1,13 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
+const {
+  getAllUsers,
+  getUserById,
+  getUserByUsername,
+  updateUser,
+  deleteUser,
+} = require('../controllers/userController');
 const upload = require('../middleware/upload');
+const authMiddleware = require('../middleware/authMiddleware');
+const { validateUser, validateRequest } = require('../utils/validators');
 
-router.post('/', upload.single('profilePicture'), userController.createUser);
-router.get('/', userController.getAllUsers);
-router.get('/:id', userController.getUserById);
-router.get('/username/:username', userController.getUserByUsername);
-router.put('/:id', upload.single('profilePicture'), userController.updateUser);
-router.delete('/:id', userController.deleteUser);
+// Admin routes (assumes authMiddleware checks for admin role)
+router.get('/', authMiddleware, getAllUsers);
+router.get('/:id', authMiddleware, getUserById);
+router.get('/username/:username', authMiddleware, getUserByUsername);
+router.put('/:id', authMiddleware, upload.single('profilePicture'), validateUser, validateRequest, updateUser);
+router.delete('/:id', authMiddleware, deleteUser);
 
 module.exports = router;

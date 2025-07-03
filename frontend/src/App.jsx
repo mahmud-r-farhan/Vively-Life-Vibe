@@ -8,9 +8,12 @@ import Profile from './pages/Profile';
 import Users from './pages/Users';
 import UserEdit from './pages/UserEdit';
 import { motion } from 'framer-motion';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { Toaster } from 'sonner';
 
 const PrivateRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <LoadingSpinner />;
   return user ? children : <Navigate to="/login" />;
 };
 
@@ -18,6 +21,7 @@ function App() {
   return (
     <AuthProvider>
       <div className="min-h-screen bg-background">
+        <Toaster richColors position="top-right" />
         <Navbar />
         <motion.main
           initial={{ opacity: 0 }}
@@ -25,35 +29,38 @@ function App() {
           transition={{ duration: 0.5 }}
           className="container mx-auto p-4"
         >
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/profile"
-              element={
-                <PrivateRoute>
-                  <Profile />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/users"
-              element={
-                <PrivateRoute>
-                  <Users />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/users/edit/:id"
-              element={
-                <PrivateRoute>
-                  <UserEdit />
-                </PrivateRoute>
-              }
-            />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <Profile />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <PrivateRoute>
+                    <Users />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/users/edit/:id"
+                element={
+                  <PrivateRoute>
+                    <UserEdit />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </ErrorBoundary>
         </motion.main>
       </div>
     </AuthProvider>

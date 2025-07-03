@@ -7,21 +7,30 @@ import UserForm from '../components/UserForm';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { PlusCircle } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 function Users() {
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const usersPerPage = 9;
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page]);
 
   const fetchUsers = async () => {
     try {
-      const response = await getUsers();
+      setLoading(true);
+      const response = await getUsers(page, usersPerPage);
       setUsers(response.data);
+      setTotalPages(Math.ceil(response.headers['x-total-count'] / usersPerPage) || 1);
     } catch (error) {
       toast.error('Failed to load users.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,13 +41,21 @@ function Users() {
       setOpen(false);
       toast.success('User created successfully!');
     } catch (error) {
-      toast.error('Failed to create user.');
+      toast.error(error.response?.data?.message || 'Failed to create user.');
     }
   };
 
   const handleDelete = (userId) => {
     setUsers(users.filter((user) => user._id !== userId));
   };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
     <motion.div
@@ -64,6 +81,36 @@ function Users() {
           <UserCard key={user._id} user={user} onDelete={handleDelete} />
         ))}
       </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center space-x-2 mt-6">
+          <Button
+            variant="outline"
+            disabled={page === 1}
+            onClick={() => handlePageChange(page - 1)}
+            aria-label="Previous page"
+          >
+            Previous
+          </Button>
+          {[...Array(totalPages).keys()].map((_, i) => (
+            <Button
+              key={i + 1}
+              variant={page === i + 1 ? 'default' : 'outline'}
+              onClick={() => handlePageChange(i + 1)}
+              aria-label={`Page ${i + 1}`}
+            >
+              {i + 1}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            disabled={page === totalPages}
+            onClick={() => handlePageChange(page + 1)}
+            aria-label="Next page"
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </motion.div>
   );
 }

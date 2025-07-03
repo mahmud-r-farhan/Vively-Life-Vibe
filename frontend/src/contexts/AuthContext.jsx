@@ -1,12 +1,14 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { loginUser, getProfile } from '../services/api';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -19,11 +21,12 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async (token) => {
     try {
-      const response = await getProfile(token);
+      const response = await getProfile();
       setUser(response.data);
     } catch (error) {
-      toast.error('Session expired. Please log in again.');
+      toast.error('Session expired or invalid. Please log in again.');
       localStorage.removeItem('token');
+      navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -34,7 +37,6 @@ export const AuthProvider = ({ children }) => {
       const response = await loginUser(credentials);
       localStorage.setItem('token', response.data.token);
       await fetchProfile(response.data.token);
-      toast.success('Login successful!');
       return true;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed.');

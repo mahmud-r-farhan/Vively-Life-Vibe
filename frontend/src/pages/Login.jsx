@@ -1,3 +1,5 @@
+import React from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,15 +11,23 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address.'),
-  password: z.string().min(6, 'Password must be at least 6 characters.'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters.')
+    .refine(
+      (value) => validator.isStrongPassword(value, { minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 }),
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+    ),
 });
 
 function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -28,11 +38,16 @@ function Login() {
   });
 
   const onSubmit = async (data) => {
-    const success = await login(data);
-    if (success) {
-      navigate('/');
-    } else {
-      toast.error('Login failed. Please check your credentials.');
+    try {
+      setIsSubmitting(true);
+      const success = await login(data);
+      if (success) {
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -75,7 +90,8 @@ function Login() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
                 Log In
               </Button>
             </form>
