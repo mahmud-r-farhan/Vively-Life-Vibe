@@ -21,8 +21,18 @@ if (missingEnvVars.length > 0) {
 // Security middleware
 app.use(helmet());
 app.use(mongoSanitize());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://vively-life-vibe.vercel.app'
+];
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
